@@ -1,0 +1,33 @@
+#  GET http://127.0.0.1:8000/api/user
+# POST http://127.0.0.1:8000/api/v1/login
+# Authorization: Bearer 17|nRdyg8s9oh9PamMCfuFQFpw1HgZ7cMEDEBrys7Ct1be385fa
+# Content-Type: application/json
+# Accept: application/json
+
+# {
+#     "email": "test@example.com",
+#      "password": "123456" ,
+#      "device_name" : "mobile"
+# }\### 1. تسجيل الدخول والحصول على الـ Token
+
+
+### تسجيل دخول الأدمن والحصول على الـ Token الخاص به
+POST http://127.0.0.1:8000/api/v1/login
+Content-Type: application/json
+Accept: application/json
+
+{
+    "email": "customer@test.com",
+    "password": "12345678",
+    "device_name": "mobile"
+}
+
+// "email": "admin@admin.com",
+// "password": "password",
+// "email": "mah@mah.com",
+// "password": "12345678",
+
+### 2. طلب مسار محمي (تأكدي من وجود الفراغ والـ Bearer)
+GET http://127.0.0.1:8000/api/v1/orders
+Accept: application/json
+Authorization: Bearer 30|A3p4FFqTBu5Xat1oRvy47lrAiOwFP5e1JIVqGHQV083c3a36
