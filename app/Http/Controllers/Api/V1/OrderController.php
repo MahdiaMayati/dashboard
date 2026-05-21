@@ -12,7 +12,7 @@ use App\Enums\UserRole;
 
 class OrderController extends Controller
 {
- 
+
     public function index(Request $request)
 {
     $user = $request->user();
@@ -91,7 +91,7 @@ class OrderController extends Controller
     {
         // حماية الطلب بحيث لا يراه إلا العميل صاحب الطلب أو الحرفي المسند إليه
         $user = $request->user();
-        if ($user->role === \App\Enums\UserRole::Customer && $order->customer_id !== $user->id) {
+        if ($user->role === UserRole::Customer && $order->customer_id !== $user->id) {
         return response()->json(['message' => 'غير مصرح لك برؤية هذا الطلب.'], 403);
     }
         if ($user->role === 'artisan' && $order->artisan_profile_id !== $user->artisanProfile?->id) {
@@ -105,7 +105,7 @@ class OrderController extends Controller
     public function updateStatus(Request $request, Order $order)
     {
         $user = $request->user();
-       if ($user->role === \App\Enums\UserRole::Customer && $order->customer_id !== $user->id) {
+       if ($user->role === UserRole::Customer && $order->customer_id !== $user->id) {
         return response()->json(['message' => 'غير مصرح لك برؤية هذا الطلب.'], 403);
     }
 
