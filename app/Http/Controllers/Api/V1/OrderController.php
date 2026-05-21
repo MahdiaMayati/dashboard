@@ -8,33 +8,37 @@ use App\Http\Resources\V1\OrderResource;
 use App\Enums\OrderStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Enums\UserRole;
 
 class OrderController extends Controller
 {
-    // 1. عرض طلبات المستخدم الحالي (إذا كان عميلاً يعرض طلباته، وإذا كان حرفياً يعرض الطلبات المسندة إليه)
+ 
     public function index(Request $request)
-    {
-        $user = $request->user();
-        $query = Order::with(['serviceCategory', 'attachments']);
+{
+    $user = $request->user();
+    $query = Order::with(['serviceCategory', 'attachments']);
 
-        if ($user->role === 'customer') {
-            $query->where('customer_id', $user->id);
-        } elseif ($user->role === 'artisan') {
-            $query->where('artisan_profile_id', $user->artisanProfile?->id);
-        } else {
-            return response()->json(['message' => 'غير مسموح لهذا الدور باستعراض الطلبات الحالية.'], 403);
-        }
+    // استخدام الـ Enum مباشرة للمقارنة بشكل صحيح ومعتمد
+    if ($user->role === UserRole::Customer) {
+        $query->where('customer_id', $user->id);
 
-        $orders = $query->latest()->paginate(15);
-        return OrderResource::collection($orders);
+    } elseif ($user->role === UserRole::Artisan) {
+        $query->where('artisan_profile_id', $user->artisanProfile?->id);
+
+    } else {
+        return response()->json(['message' => 'غير مسموح لهذا الدور باستعراض الطلبات الحالية.'], 403);
     }
+
+    $orders = $query->latest()->paginate(15);
+    return OrderResource::collection($orders);
+}
 
     // 2. إنشاء طلب جديد من قبل العميل
     public function store(Request $request)
     {
-        if ($request->user()->role !== 'customer') {
-            return response()->json(['message' => 'العملاء فقط يمكنهم إنشاء الطلبات.'], 403);
-        }
+       if ($request->user()->role !== UserRole::Customer) {
+        return response()->json(['message' => 'العملاء فقط يمكنهم إنشاء الطلبات.'], 403);
+    }
 
         $validator = Validator::make($request->all(), [
             'service_category_id' => 'required|exists:service_categories,id',
@@ -87,9 +91,9 @@ class OrderController extends Controller
     {
         // حماية الطلب بحيث لا يراه إلا العميل صاحب الطلب أو الحرفي المسند إليه
         $user = $request->user();
-        if ($user->role === 'customer' && $order->customer_id !== $user->id) {
-            return response()->json(['message' => 'غير مصرح لك برؤية هذا الطلب.'], 403);
-        }
+        if ($user->role === \App\Enums\UserRole::Customer && $order->customer_id !== $user->id) {
+        return response()->json(['message' => 'غير مصرح لك برؤية هذا الطلب.'], 403);
+    }
         if ($user->role === 'artisan' && $order->artisan_profile_id !== $user->artisanProfile?->id) {
             return response()->json(['message' => 'هذا الطلب غير مسند إليك.'], 403);
         }
@@ -101,9 +105,9 @@ class OrderController extends Controller
     public function updateStatus(Request $request, Order $order)
     {
         $user = $request->user();
-        if ($user->role !== 'artisan') {
-            return response()->json(['message' => 'الحرفيين فقط يمكنهم تعديل حالة الطلبات.'], 403);
-        }
+       if ($user->role === \App\Enums\UserRole::Customer && $order->customer_id !== $user->id) {
+        return response()->json(['message' => 'غير مصرح لك برؤية هذا الطلب.'], 403);
+    }
 
         $validator = Validator::make($request->all(), [
             'status' => 'required|string', // يجب تمرير القيمة النصية للـ Enum مثل 'completed' أو 'cancelled'
